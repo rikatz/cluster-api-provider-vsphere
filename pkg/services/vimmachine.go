@@ -364,12 +364,12 @@ func (v *VimMachineService) createOrPatchVSPhereVM(ctx *context.VIMMachineContex
 
 		// Ensure the VSphereVM has a label that can be used when searching for
 		// resources associated with the target cluster.
-		vm.Labels[clusterv1.ClusterLabelName] = ctx.Machine.Labels[clusterv1.ClusterLabelName]
+		vm.Labels[clusterv1.ClusterNameLabel] = ctx.Machine.Labels[clusterv1.ClusterNameLabel]
 
 		// For convenience, add a label that makes it easy to figure out if the
 		// VSphereVM resource is part of some control plane.
-		if val, ok := ctx.Machine.Labels[clusterv1.MachineControlPlaneLabelName]; ok {
-			vm.Labels[clusterv1.MachineControlPlaneLabelName] = val
+		if val, ok := ctx.Machine.Labels[clusterv1.MachineControlPlaneNameLabel]; ok {
+			vm.Labels[clusterv1.MachineControlPlaneNameLabel] = val
 		}
 
 		// Copy the VSphereMachine's VM clone spec into the VSphereVM's

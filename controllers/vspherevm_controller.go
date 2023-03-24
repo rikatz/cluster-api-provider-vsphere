@@ -473,7 +473,7 @@ func (r vmReconciler) clusterToVSphereVMs(a ctrlclient.Object) []reconcile.Reque
 	vms := &infrav1.VSphereVMList{}
 	err := r.Client.List(goctx.Background(), vms, ctrlclient.MatchingLabels(
 		map[string]string{
-			clusterv1.ClusterLabelName: a.GetName(),
+			clusterv1.ClusterNameLabel: a.GetName(),
 		},
 	))
 	if err != nil {
@@ -496,7 +496,7 @@ func (r vmReconciler) vsphereClusterToVSphereVMs(a ctrlclient.Object) []reconcil
 	if !ok {
 		return nil
 	}
-	clusterName, ok := vsphereCluster.Labels[clusterv1.ClusterLabelName]
+	clusterName, ok := vsphereCluster.Labels[clusterv1.ClusterNameLabel]
 	if !ok {
 		return nil
 	}
@@ -505,7 +505,7 @@ func (r vmReconciler) vsphereClusterToVSphereVMs(a ctrlclient.Object) []reconcil
 	vms := &infrav1.VSphereVMList{}
 	err := r.Client.List(goctx.Background(), vms, ctrlclient.MatchingLabels(
 		map[string]string{
-			clusterv1.ClusterLabelName: clusterName,
+			clusterv1.ClusterNameLabel: clusterName,
 		},
 	))
 	if err != nil {

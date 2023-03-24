@@ -85,7 +85,7 @@ func CreateMachine(machineName, clusterName, controlPlaneLabel, k8sVersion strin
 		ObjectMeta: metav1.ObjectMeta{
 			Name: machineName,
 			Labels: map[string]string{
-				clusterv1.MachineControlPlaneLabelName: controlPlaneLabel,
+				clusterv1.MachineControlPlaneNameLabel: controlPlaneLabel,
 				clusterNameLabelName:                   clusterName,
 			},
 		},
@@ -115,8 +115,8 @@ func CreateVSphereMachine(machineName, clusterName, controlPlaneLabel, className
 		ObjectMeta: metav1.ObjectMeta{
 			Name: machineName,
 			Labels: map[string]string{
-				clusterv1.MachineControlPlaneLabelName: controlPlaneLabel,
-				clusterv1.ClusterLabelName:             clusterName,
+				clusterv1.MachineControlPlaneNameLabel: controlPlaneLabel,
+				clusterv1.ClusterNameLabel:             clusterName,
 			},
 		},
 		Spec: infrav1.VSphereMachineSpec{

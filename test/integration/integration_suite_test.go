@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//nolint
+// nolint
 package integration
 
 import (
@@ -443,8 +443,8 @@ func createControlPlaneComponentsList(testNamespace string) []*ControlPlaneCompo
 				Name:      fmt.Sprintf(cpMachineNameFmt, testClusterName, i),
 				Namespace: testNamespace,
 				Labels: map[string]string{
-					clusterv1.MachineControlPlaneLabelName: "true",
-					clusterv1.ClusterLabelName:             testClusterName,
+					clusterv1.MachineControlPlaneNameLabel: "true",
+					clusterv1.ClusterNameLabel:             testClusterName,
 				},
 			},
 			Spec: infrav1.VSphereMachineSpec{
@@ -486,8 +486,8 @@ func createControlPlaneComponentsList(testNamespace string) []*ControlPlaneCompo
 				Name:      fmt.Sprintf(cpMachineNameFmt, testClusterName, i),
 				Namespace: testNamespace,
 				Labels: map[string]string{
-					clusterv1.MachineControlPlaneLabelName: "true",
-					clusterv1.ClusterLabelName:             testClusterName,
+					clusterv1.MachineControlPlaneNameLabel: "true",
+					clusterv1.ClusterNameLabel:             testClusterName,
 				},
 			},
 			Spec: clusterv1.MachineSpec{
@@ -532,7 +532,7 @@ func createWorkerComponents(testNamespace string) *WorkerComponents {
 			Name:      fmt.Sprintf(workerMachineDeploymentNameFmt, testClusterName),
 			Namespace: testNamespace,
 			Labels: map[string]string{
-				clusterv1.ClusterLabelName: testClusterName,
+				clusterv1.ClusterNameLabel: testClusterName,
 			},
 		},
 	}
@@ -547,7 +547,7 @@ func createWorkerComponents(testNamespace string) *WorkerComponents {
 			Name:      fmt.Sprintf(workerMachineDeploymentNameFmt, testClusterName),
 			Namespace: testNamespace,
 			Labels: map[string]string{
-				clusterv1.ClusterLabelName: testClusterName,
+				clusterv1.ClusterNameLabel: testClusterName,
 			},
 		},
 	}
@@ -563,7 +563,7 @@ func createWorkerComponents(testNamespace string) *WorkerComponents {
 			Name:      fmt.Sprintf(workerMachineDeploymentNameFmt, testClusterName),
 			Namespace: testNamespace,
 			Labels: map[string]string{
-				clusterv1.ClusterLabelName: testClusterName,
+				clusterv1.ClusterNameLabel: testClusterName,
 			},
 		},
 		Spec: clusterv1.MachineDeploymentSpec{
@@ -571,13 +571,13 @@ func createWorkerComponents(testNamespace string) *WorkerComponents {
 			Replicas:    &numWorker,
 			Selector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					clusterv1.ClusterLabelName: testClusterName,
+					clusterv1.ClusterNameLabel: testClusterName,
 				},
 			},
 			Template: clusterv1.MachineTemplateSpec{
 				ObjectMeta: clusterv1.ObjectMeta{
 					Labels: map[string]string{
-						clusterv1.ClusterLabelName: testClusterName,
+						clusterv1.ClusterNameLabel: testClusterName,
 					},
 				},
 				Spec: clusterv1.MachineSpec{
