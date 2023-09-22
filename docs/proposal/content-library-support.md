@@ -107,6 +107,19 @@ The proposal is to mutate the template field to accept an URI scheme, as: `schem
   requested to use the library UUID instead
   * Library UUID can be queried with GoVC: `govc library.info`
 
+##### Examples on consuming a content library item:
+* Using the item name - `library://ubuntu-22.04-k8s-1.28.0`
+In this case, there should be a guarantee that no other item exists on any other content library
+with the same name, otherwise user should be more specific on which contentlibrary should be used
+
+* Using a library name - `library://corplibrary/ubuntu-22.04-k8s-1.28.0`
+In this case, there should be a guarantee that no two libraries with the name `corplibrary` exists on 
+vCenter, otherwise user should be more specific on the content library identification
+
+* Using a library UUID - `library://245ecd01-2e0f-4ae2-8d26-9ed97c78ecdc/ubuntu-22.04-k8s-1.28.0`
+This is the most specific definition, where user knows the ID and Item name and there is no need
+to disambiguate
+
 #### API changes
 
 ##### VirtualMachineCloneSpec CR
