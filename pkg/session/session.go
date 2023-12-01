@@ -198,6 +198,10 @@ func GetOrCreate(ctx context.Context, params *Params) (*Session, error) {
 	// Assign tag manager to the session.
 	manager, err := newManager(ctx, logger, sessionKey, client.Client, soapURL.User, params.feature)
 	if err != nil {
+		// Logout of previously logged session to not leak
+		if errLogout := client.Logout(ctx); err != nil {
+			logger.Error(errLogout, "error logging out of leading client session")
+		}
 		return nil, errors.Wrap(err, "unable to create tags manager")
 	}
 	session.TagManager = manager
@@ -206,6 +210,13 @@ func GetOrCreate(ctx context.Context, params *Params) (*Session, error) {
 	if params.datacenter != "" {
 		dc, err := session.Finder.Datacenter(ctx, params.datacenter)
 		if err != nil {
+			// Logout of previously logged session to not leak
+			if errLogout := manager.Logout(ctx); err != nil {
+				logger.Error(errLogout, "error logging out of leading rest session")
+			}
+			if errLogout := client.Logout(ctx); err != nil {
+				logger.Error(errLogout, "error logging out of leading client session")
+			}
 			return nil, errors.Wrapf(err, "unable to find datacenter %q", params.datacenter)
 		}
 		session.datacenter = dc
