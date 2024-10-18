@@ -21,6 +21,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -119,9 +120,16 @@ func (s *service) Remove(ctx context.Context, clusterCtx *capvcontext.ClusterCon
 }
 
 func getComputeClusterResource(ctx context.Context, s *session.Session, resourcePool string) (types.ManagedObjectReference, error) {
-	rp, err := s.Finder.ResourcePoolOrDefault(ctx, resourcePool)
-	if err != nil {
-		return types.ManagedObjectReference{}, err
+	var err error
+	var rp *object.ResourcePool
+	rpRef := object.ReferenceFromString(resourcePool)
+	if rpRef != nil {
+		rp = object.NewResourcePool(s.Client.Client, *rpRef)
+	} else {
+		rp, err = s.Finder.ResourcePoolOrDefault(ctx, resourcePool)
+		if err != nil {
+			return types.ManagedObjectReference{}, err
+		}
 	}
 
 	cc, err := rp.Owner(ctx)

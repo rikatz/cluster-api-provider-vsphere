@@ -215,7 +215,14 @@ func GetOrCreate(ctx context.Context, params *Params) (*Session, error) {
 
 	// Assign the datacenter if one was specified.
 	if params.datacenter != "" {
-		dc, err := session.Finder.Datacenter(ctx, params.datacenter)
+		var dc *object.Datacenter
+		dcRef := object.ReferenceFromString(params.datacenter)
+		if dcRef != nil {
+			dc = object.NewDatacenter(client.Client, *dcRef)
+			_, err = dc.ObjectName(ctx)
+		} else {
+			dc, err = session.Finder.Datacenter(ctx, params.datacenter)
+		}
 		if err != nil {
 			log.Error(err, "Failed to get datacenter, will logout")
 			// Logout of previously logged session to not leak
@@ -227,6 +234,7 @@ func GetOrCreate(ctx context.Context, params *Params) (*Session, error) {
 			}
 			return nil, errors.Wrapf(err, "failed to create vCenter session: failed to find datacenter %q", params.datacenter)
 		}
+
 		session.datacenter = dc
 		session.Finder.SetDatacenter(dc)
 	}

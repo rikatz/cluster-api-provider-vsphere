@@ -83,6 +83,23 @@ func findVM(ctx context.Context, vmCtx *capvcontext.VMContext) (types.ManagedObj
 		return types.ManagedObjectReference{}, err
 	}
 	if objRef == nil {
+		folderRef := object.ReferenceFromString(vmCtx.VSphereVM.Spec.Folder)
+		if folderRef != nil {
+			// We should find the VM inside this vmfolder
+			folder := object.NewFolder(vmCtx.Session.Client.Client, *folderRef)
+			objs, err := folder.Children(ctx)
+			if err != nil {
+				return types.ManagedObjectReference{}, err
+			}
+			for _, obj := range objs {
+				if vm, ok := obj.(*object.VirtualMachine); ok && vm.Name() == vmCtx.VSphereVM.Name {
+					log.Info("VM found by moid folder", "vmRef", vm.Reference())
+					return vm.Reference(), nil
+				}
+			}
+			return types.ManagedObjectReference{}, errNotFound{byInventoryPath: folder.Reference().Value}
+
+		}
 		// fallback to use inventory paths
 		folder, err := vmCtx.Session.Finder.FolderOrDefault(ctx, vmCtx.VSphereVM.Spec.Folder)
 		if err != nil {

@@ -118,14 +118,27 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 		diskMoveType = linkCloneDiskMoveType
 	}
 
-	folder, err := vmCtx.Session.Finder.FolderOrDefault(ctx, vmCtx.VSphereVM.Spec.Folder)
-	if err != nil {
-		return errors.Wrapf(err, "unable to get folder for %q", ctx)
+	var folder *object.Folder
+
+	folderRef := object.ReferenceFromString(vmCtx.VSphereVM.Spec.Folder)
+	if folderRef != nil {
+		folder = object.NewFolder(vmCtx.Session.Client.Client, *folderRef)
+	} else {
+		folder, err = vmCtx.Session.Finder.FolderOrDefault(ctx, vmCtx.VSphereVM.Spec.Folder)
+		if err != nil {
+			return errors.Wrapf(err, "unable to get folder for %q", ctx)
+		}
 	}
 
-	pool, err := vmCtx.Session.Finder.ResourcePoolOrDefault(ctx, vmCtx.VSphereVM.Spec.ResourcePool)
-	if err != nil {
-		return errors.Wrapf(err, "unable to get resource pool for %q", ctx)
+	var pool *object.ResourcePool
+	poolRef := object.ReferenceFromString(vmCtx.VSphereVM.Spec.ResourcePool)
+	if poolRef != nil {
+		pool = object.NewResourcePool(vmCtx.Session.Client.Client, *poolRef)
+	} else {
+		pool, err = vmCtx.Session.Finder.ResourcePoolOrDefault(ctx, vmCtx.VSphereVM.Spec.ResourcePool)
+		if err != nil {
+			return errors.Wrapf(err, "unable to get resource pool for %q", ctx)
+		}
 	}
 
 	devices, err := tpl.Device(ctx)
@@ -209,11 +222,15 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 
 	var datastoreRef *types.ManagedObjectReference
 	if vmCtx.VSphereVM.Spec.Datastore != "" {
-		datastore, err := vmCtx.Session.Finder.Datastore(ctx, vmCtx.VSphereVM.Spec.Datastore)
-		if err != nil {
-			return errors.Wrapf(err, "unable to get datastore %s for %q", vmCtx.VSphereVM.Spec.Datastore, ctx)
+		datastoreRef = object.ReferenceFromString(vmCtx.VSphereVM.Spec.Datastore)
+		// Fallback to use the name in case Datastore is not a valid ref
+		if datastoreRef == nil {
+			datastore, err := vmCtx.Session.Finder.Datastore(ctx, vmCtx.VSphereVM.Spec.Datastore)
+			if err != nil {
+				return errors.Wrapf(err, "unable to get datastore %s for %q", vmCtx.VSphereVM.Spec.Datastore, ctx)
+			}
+			datastoreRef = types.NewReference(datastore.Reference())
 		}
-		datastoreRef = types.NewReference(datastore.Reference())
 		spec.Location.Datastore = datastoreRef
 	}
 
