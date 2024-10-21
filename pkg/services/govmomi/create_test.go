@@ -87,3 +87,143 @@ func TestCreate(t *testing.T) {
 		t.Error("failed to clone vm")
 	}
 }
+
+func TestCreateWithMOID(t *testing.T) {
+	model := simulator.VPX()
+	model.Host = 0 // ClusterHost only
+
+	simr, err := vcsim.NewBuilder().WithModel(model).Build()
+	if err != nil {
+		t.Fatalf("unable to create simulator: %s", err)
+	}
+	defer simr.Destroy()
+
+	ctx := context.Background()
+	vmContext := fake.NewVMContext(ctx, fake.NewControllerManagerContext())
+	vmContext.VSphereVM.Spec.Server = simr.ServerURL().Host
+
+	authSession, err := session.GetOrCreate(
+		ctx,
+		session.NewParams().
+			WithServer(vmContext.VSphereVM.Spec.Server).
+			WithUserInfo(simr.Username(), simr.Password()).
+			WithDatacenter(simulator.Map.Any("Datacenter").Reference().String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	vmContext.Session = authSession
+
+	vmRef := simulator.Map.Any("VirtualMachine")
+	vm, ok := vmRef.(*simulator.VirtualMachine)
+	if !ok {
+		t.Fatal("failed to get reference to an existing VM on the vcsim instance")
+	}
+	vmContext.VSphereVM.Spec.Template = vm.Name
+
+	//dcRef := simulator.Map.Any("Datacenter")
+	vmContext.VSphereVM.Spec.Datacenter = simulator.Map.Any("Datacenter").Reference().String()
+	vmContext.VSphereVM.Spec.Datastore = simulator.Map.Any("Datastore").Reference().String()
+	vmContext.VSphereVM.Spec.Folder = simulator.Map.Any("Folder").Reference().String()
+	vmContext.VSphereVM.Spec.ResourcePool = simulator.Map.Any("ResourcePool").Reference().String()
+
+	t.Logf("creating using MOID. Datacenter: %s, Datastore: %s, Folder: %s, ResourcePool: %s",
+		vmContext.VSphereVM.Spec.Datacenter,
+		vmContext.VSphereVM.Spec.Datastore,
+		vmContext.VSphereVM.Spec.Folder,
+		vmContext.VSphereVM.Spec.ResourcePool)
+
+	disk := object.VirtualDeviceList(vm.Config.Hardware.Device).SelectByType((*types.VirtualDisk)(nil))[0].(*types.VirtualDisk)
+	disk.CapacityInKB = int64(vmContext.VSphereVM.Spec.DiskGiB) * 1024 * 1024
+
+	if err := createVM(ctx, vmContext, []byte(""), ""); err != nil {
+		t.Fatal(err)
+	}
+
+	taskRef := types.ManagedObjectReference{
+		Type:  morefTypeTask,
+		Value: vmContext.VSphereVM.Status.TaskRef,
+	}
+	vimClient, err := vim25.NewClient(ctx, vmContext.Session.RoundTripper)
+	if err != nil {
+		t.Fatal("could not make vim25 client.")
+	}
+	task := object.NewTask(vimClient, taskRef)
+	err = task.Wait(ctx)
+	if err != nil {
+		t.Fatal("error waiting for task:", err)
+	}
+
+	if model.Machine+1 != model.Count().Machine {
+		t.Error("failed to clone vm")
+	}
+}
+
+func TestCreateWithMixedMOIDAndCanonicalName(t *testing.T) {
+	model := simulator.VPX()
+	model.Host = 0 // ClusterHost only
+
+	simr, err := vcsim.NewBuilder().WithModel(model).Build()
+	if err != nil {
+		t.Fatalf("unable to create simulator: %s", err)
+	}
+	defer simr.Destroy()
+
+	ctx := context.Background()
+	vmContext := fake.NewVMContext(ctx, fake.NewControllerManagerContext())
+	vmContext.VSphereVM.Spec.Server = simr.ServerURL().Host
+
+	authSession, err := session.GetOrCreate(
+		ctx,
+		session.NewParams().
+			WithServer(vmContext.VSphereVM.Spec.Server).
+			WithUserInfo(simr.Username(), simr.Password()).
+			WithDatacenter(simulator.Map.Any("Datacenter").Reference().String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	vmContext.Session = authSession
+
+	vmRef := simulator.Map.Any("VirtualMachine")
+	vm, ok := vmRef.(*simulator.VirtualMachine)
+	if !ok {
+		t.Fatal("failed to get reference to an existing VM on the vcsim instance")
+	}
+	vmContext.VSphereVM.Spec.Template = vm.Name
+
+	//dcRef := simulator.Map.Any("Datacenter")
+	vmContext.VSphereVM.Spec.Datacenter = simulator.Map.Any("Datacenter").Reference().String()
+	vmContext.VSphereVM.Spec.Datastore = simulator.Map.Any("Datastore").Entity().Name
+	vmContext.VSphereVM.Spec.Folder = simulator.Map.Any("Folder").Reference().String()
+	vmContext.VSphereVM.Spec.ResourcePool = simulator.Map.Any("ResourcePool").Entity().Name
+
+	t.Logf("creating using mixed entries. Datacenter: %s, Datastore: %s, Folder: %s, ResourcePool: %s",
+		vmContext.VSphereVM.Spec.Datacenter,
+		vmContext.VSphereVM.Spec.Datastore,
+		vmContext.VSphereVM.Spec.Folder,
+		vmContext.VSphereVM.Spec.ResourcePool)
+
+	disk := object.VirtualDeviceList(vm.Config.Hardware.Device).SelectByType((*types.VirtualDisk)(nil))[0].(*types.VirtualDisk)
+	disk.CapacityInKB = int64(vmContext.VSphereVM.Spec.DiskGiB) * 1024 * 1024
+
+	if err := createVM(ctx, vmContext, []byte(""), ""); err != nil {
+		t.Fatal(err)
+	}
+
+	taskRef := types.ManagedObjectReference{
+		Type:  morefTypeTask,
+		Value: vmContext.VSphereVM.Status.TaskRef,
+	}
+	vimClient, err := vim25.NewClient(ctx, vmContext.Session.RoundTripper)
+	if err != nil {
+		t.Fatal("could not make vim25 client.")
+	}
+	task := object.NewTask(vimClient, taskRef)
+	err = task.Wait(ctx)
+	if err != nil {
+		t.Fatal("error waiting for task:", err)
+	}
+
+	if model.Machine+1 != model.Count().Machine {
+		t.Error("failed to clone vm")
+	}
+}
