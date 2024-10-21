@@ -98,7 +98,6 @@ func findVM(ctx context.Context, vmCtx *capvcontext.VMContext) (types.ManagedObj
 				}
 			}
 			return types.ManagedObjectReference{}, errNotFound{byInventoryPath: folder.Reference().Value}
-
 		}
 		// fallback to use inventory paths
 		folder, err := vmCtx.Session.Finder.FolderOrDefault(ctx, vmCtx.VSphereVM.Spec.Folder)
