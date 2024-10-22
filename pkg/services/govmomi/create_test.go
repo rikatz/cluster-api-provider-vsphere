@@ -94,7 +94,7 @@ func TestCreateWithMOID(t *testing.T) {
 
 	simr, err := vcsim.NewBuilder().WithModel(model).Build()
 	if err != nil {
-		t.Fatalf("unable to create simulator: %s", err)
+		t.Fatalf("unable to create simulator: %v", err)
 	}
 	defer simr.Destroy()
 
@@ -144,7 +144,7 @@ func TestCreateWithMOID(t *testing.T) {
 	}
 	vimClient, err := vim25.NewClient(ctx, vmContext.Session.RoundTripper)
 	if err != nil {
-		t.Fatal("could not make vim25 client.")
+		t.Fatal("could not make vim25 client")
 	}
 	task := object.NewTask(vimClient, taskRef)
 	err = task.Wait(ctx)
@@ -213,15 +213,15 @@ func TestCreateWithMixedMOIDAndCanonicalName(t *testing.T) {
 	}
 	vimClient, err := vim25.NewClient(ctx, vmContext.Session.RoundTripper)
 	if err != nil {
-		t.Fatal("could not make vim25 client.")
+		t.Fatal("could not make vim25 client")
 	}
 	task := object.NewTask(vimClient, taskRef)
 	err = task.Wait(ctx)
 	if err != nil {
-		t.Fatal("error waiting for task:", err)
+		t.Fatalf("error waiting for task: %v", err)
 	}
 
 	if model.Machine+1 != model.Count().Machine {
-		t.Error("failed to clone vm")
+		t.Error("failed to clone VM")
 	}
 }

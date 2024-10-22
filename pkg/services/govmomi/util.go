@@ -93,7 +93,7 @@ func findVM(ctx context.Context, vmCtx *capvcontext.VMContext) (types.ManagedObj
 			}
 			for _, obj := range objs {
 				if vm, ok := obj.(*object.VirtualMachine); ok && vm.Name() == vmCtx.VSphereVM.Name {
-					log.Info("VM found by moid folder", "vmRef", vm.Reference())
+					log.Info("VM found by MOID folder", "vmRef", vm.Reference())
 					return vm.Reference(), nil
 				}
 			}

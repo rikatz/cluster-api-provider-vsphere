@@ -225,7 +225,6 @@ func GetOrCreate(ctx context.Context, params *Params) (*Session, error) {
 			}
 			return nil, errors.Wrapf(err, "failed to create vCenter session: failed to find datacenter %q", params.datacenter)
 		}
-
 		session.datacenter = dc
 		session.Finder.SetDatacenter(dc)
 	}
