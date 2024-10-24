@@ -126,7 +126,7 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 	} else {
 		folder, err = vmCtx.Session.Finder.FolderOrDefault(ctx, vmCtx.VSphereVM.Spec.Folder)
 		if err != nil {
-			return errors.Wrapf(err, "unable to get folder for %q", ctx)
+			return errors.Wrapf(err, "unable to get folder %q", vmCtx.VSphereVM.Spec.Folder)
 		}
 	}
 
@@ -137,13 +137,13 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 	} else {
 		pool, err = vmCtx.Session.Finder.ResourcePoolOrDefault(ctx, vmCtx.VSphereVM.Spec.ResourcePool)
 		if err != nil {
-			return errors.Wrapf(err, "unable to get resource pool for %q", ctx)
+			return errors.Wrapf(err, "unable to get resource pool %q for %q", vmCtx.VSphereVM.Spec.ResourcePool, vmCtx)
 		}
 	}
 
 	devices, err := tpl.Device(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "error getting devices for %q", ctx)
+		return errors.Wrapf(err, "error getting devices for %q", vmCtx)
 	}
 
 	// Create a new list of device specs for cloning the VM.
@@ -153,14 +153,14 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 	if snapshotRef == nil {
 		diskSpecs, err := getDiskSpec(vmCtx, devices)
 		if err != nil {
-			return errors.Wrapf(err, "error getting disk spec for %q", ctx)
+			return errors.Wrapf(err, "error getting disk spec for %q", vmCtx)
 		}
 		deviceSpecs = append(deviceSpecs, diskSpecs...)
 	}
 
 	networkSpecs, err := getNetworkSpecs(ctx, vmCtx, devices)
 	if err != nil {
-		return errors.Wrapf(err, "error getting network specs for %q", ctx)
+		return errors.Wrapf(err, "error getting network specs for %q", vmCtx)
 	}
 
 	deviceSpecs = append(deviceSpecs, networkSpecs...)
@@ -223,7 +223,7 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 		if datastoreRef == nil {
 			datastore, err := vmCtx.Session.Finder.Datastore(ctx, vmCtx.VSphereVM.Spec.Datastore)
 			if err != nil {
-				return errors.Wrapf(err, "unable to get datastore %s for %q", vmCtx.VSphereVM.Spec.Datastore, ctx)
+				return errors.Wrapf(err, "unable to get datastore %s for %q", vmCtx.VSphereVM.Spec.Datastore, vmCtx)
 			}
 			datastoreRef = types.NewReference(datastore.Reference())
 		}
@@ -234,12 +234,12 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 	if vmCtx.VSphereVM.Spec.StoragePolicyName != "" {
 		pbmClient, err := pbm.NewClient(ctx, vmCtx.Session.Client.Client)
 		if err != nil {
-			return errors.Wrapf(err, "unable to create pbm client for %q", ctx)
+			return errors.Wrapf(err, "unable to create pbm client for %q", vmCtx)
 		}
 
 		storageProfileID, err = pbmClient.ProfileIDByName(ctx, vmCtx.VSphereVM.Spec.StoragePolicyName)
 		if err != nil {
-			return errors.Wrapf(err, "unable to get storageProfileID from name %s for %q", vmCtx.VSphereVM.Spec.StoragePolicyName, ctx)
+			return errors.Wrapf(err, "unable to get storageProfileID from name %s for %q", vmCtx.VSphereVM.Spec.StoragePolicyName, vmCtx)
 		}
 
 		var hubs []pbmTypes.PbmPlacementHub
@@ -296,7 +296,7 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 		// if no datastore defined through VM spec or storage policy, use default
 		datastore, err := vmCtx.Session.Finder.DefaultDatastore(ctx)
 		if err != nil {
-			return errors.Wrapf(err, "unable to get default datastore for %q", ctx)
+			return errors.Wrapf(err, "unable to get default datastore for %q", vmCtx)
 		}
 		datastoreRef = types.NewReference(datastore.Reference())
 	}
@@ -309,7 +309,7 @@ func Clone(ctx context.Context, vmCtx *capvcontext.VMContext, bootstrapData []by
 	log.Info(fmt.Sprintf("Cloning Machine with clone mode %s", vmCtx.VSphereVM.Status.CloneMode))
 	task, err := tpl.Clone(ctx, folder, vmCtx.VSphereVM.Name, spec)
 	if err != nil {
-		return errors.Wrapf(err, "error trigging clone op for machine %s", ctx)
+		return errors.Wrapf(err, "error trigging clone op for machine %s", vmCtx)
 	}
 
 	vmCtx.VSphereVM.Status.TaskRef = task.Reference().Value

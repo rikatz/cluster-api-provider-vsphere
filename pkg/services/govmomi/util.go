@@ -89,6 +89,7 @@ func findVM(ctx context.Context, vmCtx *capvcontext.VMContext) (types.ManagedObj
 			folder := object.NewFolder(vmCtx.Session.Client.Client, *folderRef)
 			objs, err := folder.Children(ctx)
 			if err != nil {
+				log.Error(err, "could not enumerate children for folder", "folder", vmCtx.VSphereVM.Spec.Folder)
 				return types.ManagedObjectReference{}, err
 			}
 			for _, obj := range objs {

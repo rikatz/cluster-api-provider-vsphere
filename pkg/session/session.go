@@ -208,11 +208,17 @@ func GetOrCreate(ctx context.Context, params *Params) (*Session, error) {
 	if params.datacenter != "" {
 		var dc *object.Datacenter
 		dcRef := object.ReferenceFromString(params.datacenter)
+		var dcName string
 		if dcRef != nil {
 			dc = object.NewDatacenter(client.Client, *dcRef)
-			_, err = dc.ObjectName(ctx)
+			dcName, err = dc.ObjectName(ctx)
+			log.Info("retrieving datacenter name via MOID", "datacenter", dcName)
 		} else {
 			dc, err = session.Finder.Datacenter(ctx, params.datacenter)
+			if dc != nil {
+				dcName = dc.Name()
+			}
+			log.Info("retrieved datacenter name via name", "datacenter", dcName)
 		}
 		if err != nil {
 			log.Error(err, "Failed to get datacenter, will logout")
